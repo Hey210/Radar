@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Satellite Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f0f2f5;
+            color: #333;
+            line-height: 1.6;
+            display: flex;
+            width: 800px;
+            flex-direction: column;
+            min-height: 1000px;
+            background-image:
+             linear-gradient(to bottom, #e8eaf6, #f0f2f5);
+        }
+        
+        header {
+            background-color: #1a237e;
+            color: white;
+            padding: 1rem 2rem;
+            width: 950px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .title-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        .title-left {
+            display: flex;
+            align-items: center;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-right: 15px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+        
+        .beeping-light {
+            width: 20px;
+            height: 20px;
+            background-color: red;
+            border-radius: 50%;
+            animation: blink 1s step-start infinite;
+            box-shadow: 0 0 10px rgba(255, 0, 0, 0.7);
+        }
+        
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+        
+        main {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1.5rem;
+            flex: 1;
+        }
+        
+        .notice {
+            background-color: #ffe0b2;
+            color: #e65100;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            border-radius: 8px;
+            border-left: 5px solid #fb8c00;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .notice::before {
+            content: '⚠️';
+            font-size: 1.2rem;
+            margin-right: 8px;
+        }
+        
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+        }
+        
+        .satellite-section {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            width: 950px;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .satellite-section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            border-color: rgba(26, 35, 126, 0.2);
+        }
+        
+        .satellite-section::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, transparent 70%, rgba(26, 35, 126, 0.1));
+            border-radius: 0 0 0 100px;
+            z-index: 0;
+        }
+        
+        .satellite-section h2 {
+            color: #1a237e;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 0.8rem;
+            margin-bottom: 1.2rem;
+            position: relative;
+            width: 1000px;
+            display: inline-block;
+            font-weight: 600;
+        }
+        
+        .satellite-section h2::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 1000px;
+            height: 2px;
+            background-color: #3f51b5;
+        }
+        
+        .satellite-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.7rem;
+            margin-bottom: 1.2rem;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .satellite-info p {
+            margin: 0;
+            padding: 0.3rem 0;
+            border-bottom: 1px dashed rgba(0, 0, 0, 0.05);
+        }
+        
+        .satellite-info p:last-child {
+            border-bottom: none;
+        }
+        
+        .satellite-info strong {
+            color: #303f9f;
+            margin-right: 5px;
+        }
+        
+        .satellite-map {
+            margin-top: 1.2rem;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        .iss-section {
+            grid-column: 1 / -1;
+            background: linear-gradient(to right bottom, #ffffff, #f5f7fa);
+            border-top: 4px solid #3f51b5;
+        }
+        
+        .video-container {
+            position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
+            overflow: hidden;
+            max-width: 100%;
+            background: #000;
+            margin-top: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 12px;
+        }
+        
+        footer {
+            background-color: #1a237e;
+            color: white;
+            text-align: center;
+            padding: 1.5rem;
+            width: 950px;
+            margin-top: 2rem;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        footer a {
+            color: #90caf9;
+            text-decoration: none;
+            font-weight: bold;
+            transition: color 0.3s ease;
+        }
+        
+        footer a:hover {
+            text-decoration: underline;
+            color: #bbdefb;
+        }
+        
+        /* Satellite Type Indicators */
+        .satellite-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            margin-left: 10px;
+            color: white;
+            vertical-align: middle;
+        }
+        
+        .badge-observation {
+            background-color: #43a047;
+        }
+        
+        .badge-communication {
+            background-color: #1e88e5;
+        }
+        
+        .badge-navigation {
+            background-color: #fb8c00;
+        }
+        
+        .badge-space-station {
+            background-color: #7b1fa2;
+        }
+        
+        /* Satellite Group Divider */
+        .satellite-groups {
+            margin-top: 2rem;
+            border-top: 1px solid #e0e0e0;
+            padding-top: 1rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+            color: #555;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            grid-column: 1 / -1;
+            text-align: center;
+        }
+        
+        @media (max-width: 1024px) {
+            .grid-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="title-container">
+            <div class="title-left">
+                <h1>Satellite Tracker</h1>
+                <div class="beeping-light"></div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="notice">
+            <p><strong>Notice:</strong> Zoom out the screen to view, All satellite tracking information is provided in real-time. Best viewed on laptop screens.</p>
+        </div>
+
+        <div class="grid-container">
+            <!-- International Space Station (ISS) -->
+            <div class="satellite-section iss-section" id="iss-section">
+                <h2>International Space Station (ISS) <span class="satellite-badge badge-space-station">Space Station</span></h2>
+                <div class="satellite-info">
+                    <p><strong>Launched Date:</strong> November 20, 1998</p>
+                    <p><strong>Use:</strong> The ISS serves as a platform for scientific research and international cooperation in space exploration.</p>
+                    <p><strong>Live views from the International Space Station are streaming from an external camera mounted on the station's Harmony module. The camera is looking forward at an angle so that International Docking Adapter 2 is visible. If the Harmony module camera is not available due to operational considerations for a longer period of time, a continuous loop of recorded Earth views will be displayed with the caption "Previously Recorded." -NASA</strong></p>
+                </div>
+                <div class="satellite-map">
+                    <div id="norad_n2yo_iss"></div>
+                    <script>
+                        var norad_n2yo = '25544'; // NORAD ID for ISS
+                        var size_n2yo = 'large';
+                        var allpasses_n2yo = '1';
+                        var map_n2yo = '2';
+                    </script>
+                    <script type="text/javascript" src="https://www.n2yo.com/js/widget-tracker.js"></script>
+                </div>
+                <div class="video-container">
+                    <iframe src="https://www.youtube.com/embed/P9C25Un7xaM?autoplay=1&si=50AmXOWTY-z4fILi" frameborder="0" allowfullscreen></iframe>
+                </div>
+            </div>
+
+            <div class="satellite-groups">Earth Observation Satellites</div>
+
+            <!-- DIWATA 2B (PO-101) -->
+            <div class="satellite-section" id="diwata-section">
+                <h2>DIWATA 2B (PO-101) <span class="satellite-badge badge-observation">Observation</span></h2>
+                <div class="satellite-info">
+                    <p><strong>Description:</strong> DIWATA 2B, also known as PO-101, is a Philippine Earth observation microsatellite. It is part of the Diwata-2 program aimed at enhancing disaster management and environmental monitoring in the Philippines.</p>
+                    <p><strong>Launched Date:</strong> January 29, 2018</p>
+                    <p><strong>Use:</strong> DIWATA 2B provides high-resolution imagery for disaster response, agricultural monitoring, and environmental studies.</p>
+                </div>
+                <div class="satellite-map">
+                    <div id="norad_n2yo_diwata"></div>
+                    <script>
+                        var norad_n2yo = '43678';
+                        var size_n2yo = 'large';
+                        var allpasses_n2yo = '1';
+                        var map_n2yo = '2';
+                    </script>
+                    <script type="text/javascript" src="https://www.n2yo.com/js/widget-tracker.js"></script>
+                </div>
+            </div>
+
+            <!-- EARTHCARE -->
+            <div class="satellite-section" id="earthcare-section">
+                <h2>EARTHCARE <span class="satellite-badge badge-observation">Observation</span></h2>
+                <div class="satellite-info">
+                    <p><strong>Description:</strong> EARTHCARE is an Earth observation satellite mission developed by the European Space Agency (ESA). It aims to improve our understanding of the Earth's climate and the role of clouds and aerosols in it.</p>
+                    <p><strong>Launched Date:</strong> May 28, 2024</p>
+                    <p><strong>Use:</strong> EARTHCARE will provide crucial data for climate research, atmospheric studies, and environmental monitoring.</p>
+                </div>
+                <div class="satellite-map">
+                    <div id="norad_n2yo_earthcare"></div>
+                    <script>
+                        var norad_n2yo = '5';
+                        var size_n2yo = 'large';
+                        var allpasses_n2yo = '1';
+                        var map_n2yo = '2';
+                    </script>
+                    <script type="text/javascript" src="https://www.n2yo.com/js/widget-tracker.js"></script>
+                </div>
+            </div>
+
+            <div class="satellite-groups">Communication Satellites</div>
+
+            <!-- AGILA 1 (PALAPA B2P) -->
+            <div class="satellite-section" id="agila-section">
+                <h2>AGILA 1 (PALAPA B2P) <span class="satellite-badge badge-communication">Inactive ⚠️ ( January 1998)</span></h2>
+                <div class="satellite-info">
+                    <p><strong>Description:</strong> AGILA 1, also known as PALAPA B2P, is a communication satellite operated by PT Pasifik Satelit Nusantara (PSN). It provides communication services across Southeast Asia.</p>
+                    <p><strong>Launched Date:</strong> August 7, 1996</p>
+                    <p><strong>Use:</strong> AGILA 1 facilitates telecommunications, broadcasting, and internet services for Indonesia and the broader region.</p>
+                </div>
+                <div class="satellite-map">
+                    <div id="norad_n2yo_agila"></div>
+                    <script>
+                        var norad_n2yo = '17706';
+                        var size_n2yo = 'large';
+                        var allpasses_n2yo = '1';
+                        var map_n2yo = '2';
+                    </script>
+                    <script type="text/javascript" src="https://www.n2yo.com/js/widget-tracker.js"></script>
+                </div>
+            </div>
+
+            <!-- STARLINK-32041 -->
+            <div class="satellite-section" id="starlink-section">
+                <h2>STARLINK-32041 <span class="satellite-badge badge-communication">Communication</span></h2>
+                <div class="satellite-info">
+                    <p><strong>Description:</strong> STARLINK-32041 is a satellite part of SpaceX's Starlink constellation, designed to provide global satellite internet coverage.</p>
+                    <p><strong>Launched Date:</strong> October 18, 2021</p>
+                    <p><strong>Use:</strong> STARLINK satellites aim to provide high-speed internet access to underserved and remote areas around the world.</p>
+                </div>
+                <div class="satellite-map">
+                    <div id="norad_n2yo_starlink"></div>
+                    <script>
+                        var norad_n2yo = '60202';
+                        var size_n2yo = 'large';
+                        var allpasses_n2yo = '1';
+                        var map_n2yo = '2';
+                    </script>
+                    <script type="text/javascript" src="https://www.n2yo.com/js/widget-tracker.js"></script>
+                </div>
+            </div>
+
+            <!-- GLOBALSTAR M097 -->
+            <div class="satellite-section" id="globalstar-section">
+                <h2>GLOBALSTAR M097 <span class="satellite-badge badge-communication">Communication</span></h2>
+                <div class="satellite-info">
+                    <p><strong>Description:</strong> GLOBALSTAR M097 is a satellite operated by Globalstar, Inc., part of their low Earth orbit satellite constellation for satellite phone and low-speed data communications.</p>
+                    <p><strong>Launched Date:</strong> July 14, 2011</p>
+                    <p><strong>Use:</strong> GLOBALSTAR satellites provide mobile satellite communications services for voice and data worldwide, including remote areas without cellular coverage.</p>
+                </div>
+                <div class="satellite-map">
+                    <div id="norad_n2yo_globalstar"></div>
+                    <script>
+                        var norad_n2yo = '39072';
+                        var size_n2yo = 'large';
+                        var allpasses_n2yo = '1';
+                        var map_n2yo = '2';
+                    </script>
+                    <script type="text/javascript" src="https://www.n2yo.com/js/widget-tracker.js"></script>
+                </div>
+            </div>
+
+            <div class="satellite-groups">Navigation & Radar Satellites</div>
+
+            <!-- NAVSTAR 81 (USA 319) -->
+            <div class="satellite-section" id="navstar-section">
+                <h2>NAVSTAR 81 (USA 319) <span class="satellite-badge badge-navigation">Navigation</span></h2>
+                <div class="satellite-info">
+                    <p><strong>Description:</strong> NAVSTAR 81, also known as USA 319, is a Global Positioning System (GPS) satellite operated by the United States Space Force. It is part of the GPS constellation providing global navigation and timing services.</p>
+                    <p><strong>Launched Date:</strong> June 23, 2022</p>
+                    <p><strong>Use:</strong> NAVSTAR 81 supports precise positioning and timing information for military, civilian, and commercial applications worldwide.</p>
+                </div>
+                <div class="satellite-map">
+                    <div id="norad_n2yo_navstar"></div>
+                    <script>
+                        var norad_n2yo = '48859';
+                        var size_n2yo = 'large';
+                        var allpasses_n2yo = '1';
+                        var map_n2yo = '2';
+                    </script>
+                    <script type="text/javascript" src="https://www.n2yo.com/js/widget-tracker.js"></script>
+                </div>
+            </div>
+
+            <!-- IRIDIUM 179 SAR -->
+            <div class="satellite-section" id="iridium-section">
+                <h2>IRIDIUM 179 SAR <span class="satellite-badge badge-navigation">Radar</span></h2>
+                <div class="satellite-info">
+                    <p><strong>Description:</strong> IRIDIUM 179 is a satellite part of the Iridium NEXT constellation, equipped with Synthetic Aperture Radar (SAR) technology for Earth observation and surveillance.</p>
+                    <p><strong>Launched Date:</strong> June 25, 2019</p>
+                    <p><strong>Use:</strong> IRIDIUM 179 SAR provides high-resolution radar imaging for various applications including environmental monitoring, disaster response, and defense.</p>
+                </div>
+                <div class="satellite-map">
+                    <div id="norad_n2yo_iridium"></div>
+                    <script>
+                        var norad_n2yo = '56730';
+                        var size_n2yo = 'large';
+                        var allpasses_n2yo = '1';
+                        var map_n2yo = '2';
+                    </script>
+                    <script type="text/javascript" src="https://www.n2yo.com/js/widget-tracker.js"></script>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 All rights reserved. | developed and designed by Norwell. | TO GOD BE THE GLORY. | <a href="http://www.n2yo.com" target="_blank">Map Source</a></p>
+    </footer>
+</body>
+</html>
